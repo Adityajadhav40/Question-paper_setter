@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart AI Question Paper Generator</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700;800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #edf2ec;
+            --surface: rgba(251, 252, 248, 0.84);
+            --surface-strong: #ffffff;
+            --line: rgba(34, 59, 45, 0.12);
+            --text: #17211b;
+            --muted: #5f6e64;
+            --accent: #1f6b4f;
+            --accent-soft: #d8efe4;
+            --accent-dark: #103e2e;
+            --gold: #c79d4a;
+            --danger: #b44848;
+            --success: #207154;
+            --shadow: 0 24px 70px rgba(19, 39, 28, 0.10);
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: "Manrope", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at top left, rgba(31, 107, 79, 0.14), transparent 28%),
+                radial-gradient(circle at 85% 0%, rgba(199, 157, 74, 0.16), transparent 24%),
+                linear-gradient(145deg, #eef5ef 0%, #e6eee8 46%, #edf2ec 100%);
+            min-height: 100vh;
+        }
+        .page {
+            max-width: 1440px;
+            margin: 0 auto;
+            padding: 28px 18px 42px;
+        }
+        .hero {
+            display: grid;
+            grid-template-columns: 1.35fr 0.95fr;
+            gap: 22px;
+            margin-bottom: 22px;
+        }
+        .card {
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 28px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(14px);
+        }
+        .hero-main {
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+        }
+        .hero-main::after {
+            content: "";
+            position: absolute;
+            inset: auto -60px -120px auto;
+            width: 260px;
+            height: 260px;
+            background: radial-gradient(circle, rgba(31, 107, 79, 0.18), transparent 68%);
+            border-radius: 50%;
+        }
+        .eyebrow {
+            display: inline-block;
+            font-size: 0.82rem;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--accent-dark);
+            background: rgba(31, 107, 79, 0.08);
+            border: 1px solid rgba(31, 107, 79, 0.14);
+            border-radius: 999px;
+            padding: 8px 12px;
+        }
+        h1 {
+            font-size: clamp(2.4rem, 5vw, 4.6rem);
+            line-height: 0.92;
+            letter-spacing: -0.06em;
+            margin: 18px 0 14px;
+            max-width: 9ch;
+        }
+        .hero-copy {
+            color: var(--muted);
+            max-width: 70ch;
+            line-height: 1.7;
+        }
+        .hero-stats, .summary-grid, .meta-grid, .analysis-grid {
+            display: grid;
+            gap: 14px;
+        }
+        .hero-stats {
+            margin-top: 22px;
+            grid-template-columns: repeat(4, 1fr);
+        }
+        .stat-card, .mini-card, .meta-card, .analysis-card, .paper-card, .question-card, .admin-card {
+            background: var(--surface-strong);
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            padding: 16px;
+        }
+        .stat-card strong, .mini-card strong, .meta-card strong {
+            display: block;
+            font-size: 1.45rem;
+            margin-bottom: 8px;
+        }
+        .mono {
+            font-family: "IBM Plex Mono", monospace;
+        }
+        .hero-side {
+            padding: 24px;
+            display: grid;
+            gap: 14px;
+        }
+        .summary-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        body.dark {
+            --bg: #0f1613;
+            --surface: rgba(21, 29, 24, 0.88);
+            --surface-strong: #17201b;
+            --line: rgba(236, 246, 239, 0.08);
+            --text: #edf5ef;
+            --muted: #a2b1a8;
+            --accent: #3db37f;
+            --accent-soft: rgba(61, 179, 127, 0.16);
+            --accent-dark: #d9f4e7;
+            --gold: #dfbd76;
+            --shadow: 0 24px 70px rgba(0, 0, 0, 0.28);
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: 430px 1fr;
+            gap: 22px;
+        }
+        .sidebar {
+            align-content: start;
+            max-height: calc(100vh - 32px);
+            overflow: auto;
+            padding-right: 4px;
+        }
+        .nav-tabs {
+            display: grid;
+            gap: 10px;
+            margin-bottom: 0;
+        }
+        .nav-tab {
+            background: rgba(255,255,255,0.72);
+            border: 1px solid var(--line);
+            color: var(--accent-dark);
+            text-align: left;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-tab.active {
+            background: linear-gradient(135deg, var(--accent), #2f8b69);
+            color: white;
+        }
+        .nav-tab::before {
+            content: "";
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 4px;
+            background: transparent;
+            transition: background 0.18s ease;
+        }
+        .nav-tab.active::before {
+            background: rgba(255,255,255,0.9);
+        }
+        .sidebar, .workspace {
+            display: grid;
+            gap: 22px;
+        }
+        .tab-panel.hidden {
+            display: none;
+        }
+        .collapsible {
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: rgba(255,255,255,0.58);
+            overflow: hidden;
+        }
+        .collapsible summary {
+            list-style: none;
+            cursor: pointer;
+            padding: 14px 16px;
+            font-weight: 800;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .collapsible summary::-webkit-details-marker {
+            display: none;
+        }
+        .collapsible summary::after {
+            content: "▾";
+        }
+        .collapsible[open] summary::after {
+            content: "▴";
+        }
+        .collapsible-body {
+            padding: 0 16px 16px;
+        }
+        .panel {
+            padding: 22px;
+        }
+        .panel h2 {
+            margin: 0 0 8px;
+            font-size: 1.2rem;
+        }
+        .panel p.helper {
+            color: var(--muted);
+            line-height: 1.6;
+            margin: 0 0 18px;
+        }
+        .form-group {
+            margin-bottom: 14px;
+        }
+        label {
+            display: block;
+            margin-bottom: 7px;
+            font-weight: 700;
+        }
+        input, select, textarea {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 12px 14px;
+            font: inherit;
+            color: var(--text);
+            background: rgba(255, 255, 255, 0.88);
+        }
+        textarea {
+            min-height: 96px;
+            resize: vertical;
+        }
+        .row-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        .row-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+        .checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .checkbox-chip {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            padding: 11px 12px;
+            background: rgba(31, 107, 79, 0.05);
+            border: 1px solid rgba(31, 107, 79, 0.12);
+            border-radius: 16px;
+        }
+        .checkbox-chip input {
+            width: auto;
+        }
+        .button-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 14px;
+        }
+        button {
+            border: none;
+            border-radius: 999px;
+            padding: 12px 16px;
+            font: inherit;
+            font-weight: 800;
+            cursor: pointer;
+            transition: transform 0.18s ease, opacity 0.18s ease;
+        }
+        button:hover {
+            transform: translateY(-1px);
+        }
+        .primary-btn {
+            background: linear-gradient(135deg, var(--accent), #2f8b69);
+            color: white;
+        }
+        .secondary-btn {
+            background: #18231c;
+            color: white;
+        }
+        .ghost-btn {
+            background: transparent;
+            color: var(--accent-dark);
+            border: 1px solid rgba(31, 107, 79, 0.2);
+        }
+        .status {
+            min-height: 22px;
+            margin-top: 12px;
+            color: var(--muted);
+        }
+        .status.error { color: var(--danger); }
+        .status.success { color: var(--success); }
+        .workspace-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 16px;
+        }
+        .pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            background: rgba(199, 157, 74, 0.14);
+            border: 1px solid rgba(199, 157, 74, 0.28);
+            border-radius: 999px;
+            color: #6b5425;
+            font-size: 0.84rem;
+        }
+        .meta-grid {
+            grid-template-columns: repeat(4, 1fr);
+            margin-bottom: 18px;
+        }
+        .papers {
+            display: grid;
+            gap: 14px;
+        }
+        .paper-card h3, .analysis-card h3 {
+            margin: 0 0 8px;
+        }
+        .paper-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+        }
+        .question-list {
+            display: grid;
+            gap: 10px;
+            margin-top: 12px;
+        }
+        .badge-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 10px;
+        }
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            border-radius: 999px;
+            padding: 6px 10px;
+            font-size: 0.78rem;
+            background: var(--accent-soft);
+            color: var(--accent-dark);
+            border: 1px solid rgba(31, 107, 79, 0.14);
+        }
+        .analysis-grid {
+            grid-template-columns: repeat(3, 1fr);
+            margin-top: 16px;
+            max-height: 900px;
+            overflow: auto;
+            padding-right: 4px;
+        }
+        .insight-charts {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .chart-box {
+            background: var(--surface-strong);
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 14px;
+            min-height: 280px;
+        }
+        .chart-box canvas {
+            max-height: 220px;
+        }
+        ul.clean-list {
+            margin: 10px 0 0;
+            padding-left: 18px;
+        }
+        .search-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 14px;
+        }
+        .assistant-chat {
+            display: grid;
+            gap: 12px;
+        }
+        .hero-tools {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .tool-btn {
+            border: 1px solid var(--line);
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: var(--surface-strong);
+            color: var(--text);
+            cursor: pointer;
+            font-weight: 700;
+        }
+        .chat-log {
+            max-height: 340px;
+            overflow: auto;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            background: rgba(255,255,255,0.76);
+            padding: 12px;
+            display: grid;
+            gap: 10px;
+        }
+        .chat-msg {
+            border-radius: 14px;
+            padding: 10px 12px;
+            line-height: 1.6;
+        }
+        .chat-msg.user { background: rgba(31, 107, 79, 0.10); }
+        .chat-msg.bot { background: rgba(199, 157, 74, 0.14); }
+        .empty-state {
+            min-height: 180px;
+            display: grid;
+            place-items: center;
+            text-align: center;
+            color: var(--muted);
+            border: 1px dashed var(--line);
+            border-radius: 18px;
+            background: rgba(255,255,255,0.45);
+            padding: 18px;
+        }
+        .skeleton-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 14px;
+        }
+        .skeleton-card {
+            min-height: 120px;
+            border-radius: 18px;
+            border: 1px solid var(--line);
+            background: linear-gradient(90deg, rgba(255,255,255,0.35) 25%, rgba(255,255,255,0.7) 50%, rgba(255,255,255,0.35) 75%);
+            background-size: 220% 100%;
+            animation: shimmer 1.2s linear infinite;
+        }
+        @keyframes shimmer {
+            to { background-position: -220% 0; }
+        }
+        .toast-stack {
+            position: fixed;
+            right: 18px;
+            bottom: 18px;
+            display: grid;
+            gap: 10px;
+            z-index: 30;
+        }
+        .toast {
+            min-width: 260px;
+            max-width: 360px;
+            padding: 12px 14px;
+            border-radius: 16px;
+            color: white;
+            box-shadow: var(--shadow);
+            animation: toastIn 0.2s ease;
+        }
+        .toast.success { background: linear-gradient(135deg, var(--success), #26a56f); }
+        .toast.error { background: linear-gradient(135deg, var(--danger), #d96f6f); }
+        .toast.info { background: linear-gradient(135deg, #335bdf, #6180ff); }
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .fab {
+            position: fixed;
+            right: 22px;
+            bottom: 22px;
+            z-index: 25;
+            border: none;
+            border-radius: 999px;
+            padding: 14px 18px;
+            background: linear-gradient(135deg, var(--accent), var(--gold));
+            color: white;
+            box-shadow: var(--shadow);
+            cursor: pointer;
+            font-weight: 800;
+        }
+        .command-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.34);
+            display: none;
+            place-items: center;
+            z-index: 40;
+        }
+        .command-backdrop.open { display: grid; }
+        .command-modal {
+            width: min(720px, 92vw);
+            background: var(--surface);
+            border: 1px solid var(--line);
+            border-radius: 24px;
+            padding: 18px;
+            box-shadow: var(--shadow);
+        }
+        .command-input {
+            width: 100%;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 12px 14px;
+            background: var(--surface-strong);
+            color: var(--text);
+            margin-bottom: 12px;
+        }
+        .command-list {
+            display: grid;
+            gap: 8px;
+            max-height: 320px;
+            overflow: auto;
+        }
+        .command-item {
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid var(--line);
+            background: var(--surface-strong);
+            cursor: pointer;
+        }
+        .section-stack {
+            display: grid;
+            gap: 22px;
+        }
+        @media (max-width: 1100px) {
+            .hero, .layout {
+                grid-template-columns: 1fr;
+            }
+            .hero-stats, .meta-grid, .analysis-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        @media (max-width: 720px) {
+            .hero-stats, .summary-grid, .meta-grid, .analysis-grid, .row-2, .row-3, .checkbox-grid, .button-row, .search-row {
+                grid-template-columns: 1fr;
+            }
+            .insight-charts, .skeleton-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <section class="hero">
+            <div class="card hero-main">
+                <span class="eyebrow">AI Academic Suite</span>
+                <h1>Smart Question Paper Generator</h1>
+                <p class="hero-copy">
+                    A full-stack engineering question bank platform for faculty teams. Build department-aware
+                    papers, balance difficulty and question types, save variants, import larger datasets,
+                    and use machine learning to rank fresher, more relevant questions.
+                </p>
+                <div class="hero-stats" id="heroStats"></div>
+            </div>
+            <div class="card hero-side">
+                <div class="hero-tools">
+                    <button id="themeToggle" class="tool-btn">Toggle Theme</button>
+                    <button id="commandPaletteBtn" class="tool-btn">Command Palette</button>
+                </div>
+                <div class="mini-card">
+                    <strong id="mlEnabledText">ML Loading</strong>
+                    <span class="mono" id="mlModelText">Preparing model status...</span>
+                </div>
+                <div class="mini-card">
+                    <strong id="openAiStatus">AI Features</strong>
+                    <span class="mono" id="openAiStatusText">Checking OpenAI availability...</span>
+                </div>
+                <div class="mini-card">
+                    <strong>Core Workflow</strong>
+                    <p class="helper">PostgreSQL stores the question bank, FastAPI serves the APIs, and the ML layer helps rank and diversify question selection.</p>
+                </div>
+                <div class="mini-card">
+                    <strong>Feature Visibility</strong>
+                    <p class="helper">AI Notes, AI Assistant, PDF export, blueprint tools, review queue, and comparison tools are available below and update live.</p>
+                </div>
+                <div class="summary-grid" id="summaryGrid"></div>
+            </div>
+        </section>
+
+        <section class="layout">
+            <aside class="sidebar">
+                <div class="card panel">
+                    <div class="nav-tabs">
+                        <button class="nav-tab active" data-tab="generate">Generate</button>
+                        <button class="nav-tab" data-tab="manage">Manage</button>
+                        <button class="nav-tab" data-tab="intelligence">Intelligence</button>
+                    </div>
+                </div>
+
+                <div class="card panel tab-panel" data-panel="generate">
+                    <h2>Generate Paper</h2>
+                    <p class="helper">Create balanced paper variants using department, subject, topic, type, and difficulty filters.</p>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label for="paperTitle">Paper Title</label>
+                            <input id="paperTitle" value="Faculty Examination Set" />
+                        </div>
+                        <div class="form-group">
+                            <label for="createdBy">Created By</label>
+                            <input id="createdBy" value="Faculty User" />
+                        </div>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label for="examType">Exam Type</label>
+                            <select id="examType"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="semester">Semester</label>
+                            <select id="semester"></select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="department">Department</label>
+                        <select id="department"></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="subject">Subject</label>
+                        <select id="subject"></select>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label for="topic">Topic</label>
+                            <select id="topic"></select>
+                        </div>
+                        <div class="form-group">
+                            <label for="subtopic">Subtopic</label>
+                            <select id="subtopic"></select>
+                        </div>
+                    </div>
+                    <div class="row-3">
+                        <div class="form-group">
+                            <label for="difficulty">Difficulty</label>
+                            <select id="difficulty">
+                                <option value="Mixed">Mixed</option>
+                                <option value="Hard">Hard</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Easy">Easy</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="marks">Total Marks</label>
+                            <input id="marks" type="number" min="20" max="100" value="60" />
+                        </div>
+                        <div class="form-group">
+                            <label for="variantCount">Variants</label>
+                            <input id="variantCount" type="number" min="1" max="5" value="3" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="patternUsed">Pattern Used</label>
+                        <input id="patternUsed" value="AI balanced selection" />
+                    </div>
+                    <div class="form-group">
+                        <label>Question Types</label>
+                        <div class="checkbox-grid">
+                            <label class="checkbox-chip"><input type="checkbox" name="questionType" value="MCQ" checked /> MCQ</label>
+                            <label class="checkbox-chip"><input type="checkbox" name="questionType" value="Short" checked /> Short</label>
+                            <label class="checkbox-chip"><input type="checkbox" name="questionType" value="Long" checked /> Long</label>
+                        </div>
+                    </div>
+                    <div class="button-row">
+                        <button class="primary-btn" id="generateBtn">Generate</button>
+                        <button class="secondary-btn" id="pdfBtn">Download PDF</button>
+                    </div>
+                    <div class="button-row">
+                        <button class="ghost-btn" id="analysisBtn">Analytics</button>
+                        <button class="ghost-btn" id="historyBtn">Saved Papers</button>
+                    </div>
+                    <p id="statusMessage" class="status"></p>
+                </div>
+
+                <div class="card panel admin-card tab-panel hidden" data-panel="manage">
+                    <details class="collapsible" open>
+                        <summary>Admin Tools</summary>
+                        <div class="collapsible-body">
+                    <p class="helper">Add one question quickly or import larger JSON and CSV datasets into PostgreSQL.</p>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label for="adminDepartment">Department</label>
+                            <input id="adminDepartment" placeholder="Computer Science Engineering" />
+                        </div>
+                        <div class="form-group">
+                            <label for="adminSubject">Subject</label>
+                            <input id="adminSubject" placeholder="Database Management Systems" />
+                        </div>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label for="adminTopic">Topic</label>
+                            <input id="adminTopic" placeholder="Transactions" />
+                        </div>
+                        <div class="form-group">
+                            <label for="adminSubtopic">Subtopic</label>
+                            <input id="adminSubtopic" placeholder="ACID Properties" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminQuestion">Question</label>
+                        <textarea id="adminQuestion" placeholder="Enter a question"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminAnswer">Answer Key</label>
+                        <textarea id="adminAnswer" placeholder="Enter an expected answer"></textarea>
+                    </div>
+                    <div class="row-3">
+                        <div class="form-group">
+                            <label for="adminDifficulty">Difficulty</label>
+                            <select id="adminDifficulty">
+                                <option value="Easy">Easy</option>
+                                <option value="Medium">Medium</option>
+                                <option value="Hard">Hard</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="adminMarks">Marks</label>
+                            <input id="adminMarks" type="number" min="1" max="20" value="5" />
+                        </div>
+                        <div class="form-group">
+                            <label for="adminType">Type</label>
+                            <select id="adminType">
+                                <option value="MCQ">MCQ</option>
+                                <option value="Short">Short</option>
+                                <option value="Long">Long</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row-3">
+                        <div class="form-group">
+                            <label for="adminBloom">Bloom Level</label>
+                            <select id="adminBloom">
+                                <option value="Remember">Remember</option>
+                                <option value="Understand">Understand</option>
+                                <option value="Apply">Apply</option>
+                                <option value="Analyze">Analyze</option>
+                                <option value="Evaluate">Evaluate</option>
+                                <option value="Create">Create</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="adminSemester">Semester</label>
+                            <input id="adminSemester" type="number" min="1" max="8" value="4" />
+                        </div>
+                        <div class="form-group">
+                            <label for="adminVerified">Verified</label>
+                            <select id="adminVerified">
+                                <option value="true">Yes</option>
+                                <option value="false">No</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="button-row">
+                        <button class="primary-btn" id="addQuestionBtn">Add Question</button>
+                        <button class="ghost-btn" id="loadQuestionsBtn">Preview Bank</button>
+                    </div>
+                    <div class="form-group" style="margin-top:14px;">
+                        <label for="importFile">Import JSON or CSV</label>
+                        <input id="importFile" type="file" accept=".json,.csv" />
+                    </div>
+                    <button class="secondary-btn" id="importFileBtn">Import File</button>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="card panel admin-card tab-panel hidden" data-panel="manage">
+                    <details class="collapsible" open>
+                        <summary>Generate From Notes</summary>
+                        <div class="collapsible-body">
+                    <p class="helper">Upload chapter notes in PDF, DOCX, or TXT format. The system extracts text, generates draft questions, stores them in PostgreSQL, and makes them available for paper generation.</p>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label for="notesTitle">Notes Title</label>
+                            <input id="notesTitle" placeholder="Unit 3 Notes - Transactions" />
+                        </div>
+                        <div class="form-group">
+                            <label for="notesDepartment">Department</label>
+                            <input id="notesDepartment" placeholder="Computer Science Engineering" />
+                        </div>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label for="notesSubject">Subject</label>
+                            <input id="notesSubject" placeholder="Database Management Systems" />
+                        </div>
+                        <div class="form-group">
+                            <label for="notesTopic">Topic</label>
+                            <input id="notesTopic" placeholder="Transactions" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="notesSubtopic">Subtopic</label>
+                        <input id="notesSubtopic" placeholder="ACID Properties" />
+                    </div>
+                    <div class="form-group">
+                        <label for="notesFile">Upload Notes</label>
+                        <input id="notesFile" type="file" accept=".pdf,.docx,.txt" />
+                    </div>
+                    <div class="button-row">
+                        <button class="primary-btn" id="uploadNotesBtn">Upload Notes</button>
+                        <button class="secondary-btn" id="uploadNotesAiBtn">AI Notes</button>
+                    </div>
+                    <div class="button-row">
+                        <button class="ghost-btn" id="notesLibraryBtn">View Notes</button>
+                    </div>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="card panel admin-card tab-panel hidden" data-panel="manage">
+                    <details class="collapsible">
+                        <summary>Faculty Access</summary>
+                        <div class="collapsible-body">
+                    <p class="helper">Create demo faculty users and log in locally for role-based flows and personal paper history.</p>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label for="authFullName">Full Name</label>
+                            <input id="authFullName" placeholder="Aarav Sharma" />
+                        </div>
+                        <div class="form-group">
+                            <label for="authUsername">Username</label>
+                            <input id="authUsername" placeholder="aarav" />
+                        </div>
+                    </div>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label for="authPassword">Password</label>
+                            <input id="authPassword" type="password" placeholder="Create a password" />
+                        </div>
+                        <div class="form-group">
+                            <label for="authRole">Role</label>
+                            <select id="authRole">
+                                <option value="faculty">Faculty</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="button-row">
+                        <button class="primary-btn" id="registerBtn">Register</button>
+                        <button class="ghost-btn" id="loginBtn">Login</button>
+                    </div>
+                    <p class="helper" id="authState">Current user: Guest</p>
+                        </div>
+                    </details>
+                </div>
+
+                <div class="card panel admin-card tab-panel hidden" data-panel="intelligence">
+                    <details class="collapsible" open>
+                        <summary>Blueprint Builder</summary>
+                        <div class="collapsible-body">
+                    <p class="helper">Save exact paper patterns such as 10 marks MCQ, 20 marks Short, and 30 marks Long.</p>
+                    <div class="row-2">
+                        <div class="form-group">
+                            <label for="blueprintName">Blueprint Name</label>
+                            <input id="blueprintName" placeholder="End-Sem Balanced 60" />
+                        </div>
+                        <div class="form-group">
+                            <label for="blueprintExamType">Exam Type</label>
+                            <input id="blueprintExamType" placeholder="End-Sem" />
+                        </div>
+                    </div>
+                    <div class="row-3">
+                        <div class="form-group">
+                            <label for="blueprintMcq">MCQ Marks</label>
+                            <input id="blueprintMcq" type="number" min="0" value="10" />
+                        </div>
+                        <div class="form-group">
+                            <label for="blueprintShort">Short Marks</label>
+                            <input id="blueprintShort" type="number" min="0" value="20" />
+                        </div>
+                        <div class="form-group">
+                            <label for="blueprintLong">Long Marks</label>
+                            <input id="blueprintLong" type="number" min="0" value="30" />
+                        </div>
+                    </div>
+                    <div class="button-row">
+                        <button class="primary-btn" id="saveBlueprintBtn">Save Blueprint</button>
+                        <button class="ghost-btn" id="loadBlueprintsBtn">Load Blueprints</button>
+                    </div>
+                        </div>
+                    </details>
+                </div>
+            </aside>
+
+            <main class="workspace section-stack">
+                <div class="card panel">
+                    <div class="workspace-header">
+                        <div>
+                            <h2>Generated Output</h2>
+                            <p class="helper">See saved variants, answer keys, and the selected generation blueprint.</p>
+                        </div>
+                        <span class="pill mono" id="datasetPill">Loading dataset summary...</span>
+                    </div>
+                    <div id="paperMeta" class="meta-grid"></div>
+                    <div id="papersContainer" class="papers"></div>
+                </div>
+
+                <div class="card panel">
+                    <div class="workspace-header">
+                        <div>
+                            <h2>Insights & Admin View</h2>
+                            <p class="helper">Analytics, saved paper history, and question-bank previews appear here.</p>
+                        </div>
+                    </div>
+                    <div class="insight-charts">
+                        <div class="chart-box">
+                            <h3>Difficulty Chart</h3>
+                            <canvas id="difficultyChart"></canvas>
+                        </div>
+                        <div class="chart-box">
+                            <h3>Type Chart</h3>
+                            <canvas id="typeChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="search-row">
+                        <input id="subjectSearch" placeholder="Search subject" />
+                        <input id="topicSearch" placeholder="Search topic" />
+                        <input id="subtopicSearch" placeholder="Search subtopic" />
+                    </div>
+                    <div id="analysisGrid" class="analysis-grid"></div>
+                </div>
+
+                <div class="card panel tab-panel hidden" data-panel="intelligence">
+                    <div class="workspace-header">
+                        <div>
+                            <h2>Review & Comparison Tools</h2>
+                            <p class="helper">Find duplicates, review low-quality questions, compare papers, and request smarter replacements.</p>
+                        </div>
+                    </div>
+                    <div class="row-3">
+                        <div class="form-group">
+                            <label for="similarityQuestionId">Question ID</label>
+                            <input id="similarityQuestionId" type="number" min="1" placeholder="Question ID" />
+                        </div>
+                        <div class="form-group">
+                            <label for="comparePaperA">Paper A ID</label>
+                            <input id="comparePaperA" type="number" min="1" placeholder="Paper A ID" />
+                        </div>
+                        <div class="form-group">
+                            <label for="comparePaperB">Paper B ID</label>
+                            <input id="comparePaperB" type="number" min="1" placeholder="Paper B ID" />
+                        </div>
+                    </div>
+                    <div class="button-row">
+                        <button class="ghost-btn" id="similarityBtn">Find Similar Questions</button>
+                        <button class="ghost-btn" id="alternativesBtn">Suggest Alternatives</button>
+                    </div>
+                    <div class="button-row">
+                        <button class="ghost-btn" id="reviewQueueBtn">Review Queue</button>
+                        <button class="secondary-btn" id="comparePapersBtn">Compare Papers</button>
+                    </div>
+                </div>
+
+                <div class="card panel tab-panel hidden" data-panel="intelligence">
+                    <div class="workspace-header">
+                        <div>
+                            <h2>AI Assistant</h2>
+                            <p class="helper">Ask for project help, study guidance, engineering explanations, or casual support. If OpenAI is configured, this becomes a real AI chat assistant.</p>
+                        </div>
+                    </div>
+                    <div class="assistant-chat">
+                        <div id="chatLog" class="chat-log"></div>
+                        <textarea id="chatInput" placeholder="Ask anything about your project, coding, engineering topics, or studies..."></textarea>
+                        <div class="button-row">
+                            <button class="primary-btn" id="chatSendBtn">Send Message</button>
+                            <button class="ghost-btn" id="chatClearBtn">Clear Chat</button>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </section>
+    </div>
+
+    <button id="floatingGenerateBtn" class="fab">Generate</button>
+    <div id="toastStack" class="toast-stack"></div>
+    <div id="commandBackdrop" class="command-backdrop">
+        <div class="command-modal">
+            <input id="commandInput" class="command-input" placeholder="Search actions and sections..." />
+            <div id="commandList" class="command-list"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="/frontend/script.js"></script>
+</body>
+</html>
